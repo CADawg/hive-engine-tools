@@ -21,15 +21,15 @@ class HiveEngineAPI {
         return this.getRPCUrl() + "contracts";
     }
 
-    async queryContract(contract,table,query={}) {
+    async queryContract(contract,table,query={},offset=0) {
         let response = await axios.post(
             this.getContractUrl(),
-            JSON.stringify([{"method": "find", "jsonrpc": "2.0", "params": {"contract":  contract, "table":  table, "query": query, "limit": 1000, "offset": 0, "indexes" : []},  "id" : 1}]),
+            JSON.stringify([{"method": "find", "jsonrpc": "2.0", "params": {"contract":  contract, "table":  table, "query": query, "limit": 1000, "offset": offset, "indexes" : []},  "id" : 1}]),
             {headers: {"Content-Type": "application/json", "Cache-Control": "no-cache"}}
         );
 
-        if (response.data !== undefined && response.data !== null && response.data.result !== null && response.data.result !== [] && response.data.result !== undefined) {
-            return response.data.result;
+        if (response.data !== undefined && response.data !== null && response.data[0].result !== null && response.data[0].result !== undefined) {
+            return response.data[0].result;
         } else {
             return false;
         }
@@ -39,7 +39,7 @@ class HiveEngineAPI {
         return await this.queryContract("tokens","balances",{account: $user});
     }
 
-    async getMarketSells($user = "null", $token = "") {
+    async getMarketSells($user = "", $token = "", offset=0) {
         let $query = {};
         if ($user.length > 0) {
             $query["account"] = $user.toLowerCase();
@@ -47,10 +47,10 @@ class HiveEngineAPI {
         if ($token.length > 0) {
             $query["symbol"] = $token.toUpperCase();
         }
-        return await this.queryContract("market","sellBook",$query);
+        return await this.queryContract("market","sellBook",$query,offset);
     }
 
-    async getMarketBuys($user = "null", $token = "") {
+    async getMarketBuys($user = "", $token = "", offset=0) {
         let $query = {};
         if ($user.length > 0) {
             $query["account"] = $user.toLowerCase();
@@ -58,14 +58,14 @@ class HiveEngineAPI {
         if ($token.length > 0) {
             $query["symbol"] = $token.toUpperCase();
         }
-        return await this.queryContract("market","buyBook",$query);
+        return await this.queryContract("market","buyBook",$query,offset);
     }
 
     async getTokens() {
         return this.queryContract("tokens", "tokens", {});
     }
 
-    async getUndelegations($user = "", $token = "") {
+    async getUndelegations($user = "", $token = "", offset = 0) {
         let $query = {};
         if ($user.length > 0) {
             $query["account"] = $user.toLowerCase();
@@ -74,17 +74,17 @@ class HiveEngineAPI {
             $query["symbol"] = $token.toUpperCase();
         }
 
-        return await this.queryContract("tokens", "pendingUndelegations", $query);
+        return await this.queryContract("tokens", "pendingUndelegations", $query, offset);
     }
 
-    async getDelegations($initialQuery = {}) {
+    async getDelegations($initialQuery = {}, offset = 0) {
         let $query = {};
         for (let key in $initialQuery) {
             if ($initialQuery.hasOwnProperty(key) && $initialQuery[key].length > 0)
                 $query[key] = $initialQuery[key];
         }
 
-        return await this.queryContract("tokens", "delegations", $query);
+        return await this.queryContract("tokens", "delegations", $query, offset);
     }
 
     async getUserBalanceOne($user="null",$token="") {
